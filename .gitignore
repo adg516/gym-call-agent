@@ -1,0 +1,33 @@
+cat << 'EOF' > .gitignore
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.env
+.venv/
+venv/
+
+# Logs
+*.log
+
+# OS
+.DS_Store
+
+# Kubernetes
+*.local.yaml
+kubeconfig
+k3s.yaml
+
+# Redis / state
+dump.rdb
+
+# Secrets
+secrets/
+*.pem
+*.key
+
+# Editor
+.vscode/
+.idea/
+EOF
+
