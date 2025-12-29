@@ -1,0 +1,91 @@
+Project idea (what you’re building)
+
+An AI phone agent that calls gyms/BJJ gyms, has a natural voice conversation, and collects structured drop-in info (schedule, pricing, mat fees, requirements). Stack:
+
+Twilio Voice for phone calls
+
+Streaming audio (real-time) for LLM voice + transcription (not Twilio TTS)
+
+Python + FastAPI backend
+
+k3s on 3 Raspberry Pis, Traefik ingress, cert-manager for TLS
+
+Where we are now (current state)
+
+Infra is basically solved:
+
+k3s cluster up (3 nodes), app deployed and reachable via Ingress host bidetking.ddns.net
+
+Router port-forwarding fixed; public 80/443 reachable
+
+No-IP dynamic DNS is updating correctly (A record = public IPv4)
+
+Let’s Encrypt cert issued and healthy
+
+Certificate READY=True
+
+Renewal scheduled automatically
+
+Traefik Ingress was only bound to websecure (443), causing HTTP 404; you changed entrypoints to web,websecure so HTTP works too.
+
+App status:
+
+HTTPS endpoint works: https://bidetking.ddns.net/healthz returns 200 from FastAPI
+
+You are now Twilio-ready from a networking/TLS perspective.
+
+Next steps (what to ask Cursor to implement)
+
+Goal: add Twilio webhooks + Media Streams endpoints to your FastAPI app.
+
+Twilio Voice webhook (HTTP)
+
+Add POST /twilio/voice
+
+Return TwiML XML that tells Twilio to connect and start a Media Stream:
+
+<Connect><Stream url="wss://bidetking.ddns.net/twilio/stream" /></Connect>
+
+Media Streams WebSocket endpoint
+
+Add WS /twilio/stream
+
+Parse Twilio stream JSON events: start, media, stop
+
+For now just log + buffer; later forward audio frames into your realtime pipeline.
+
+Security (recommended)
+
+Validate Twilio webhook signatures (X-Twilio-Signature) using TWILIO_AUTH_TOKEN
+
+Make validation toggleable for dev.
+
+Twilio Console wiring
+
+Buy/attach a Twilio phone number.
+
+In Console → Voice config:
+
+“A CALL COMES IN” → Webhook POST to https://bidetking.ddns.net/twilio/voice
+
+Smoke test
+
+Call the Twilio number
+
+Watch logs: should see the webhook hit, then a websocket connect, then start/media/stop.
+
+Cursor prompt (copy/paste)
+
+“Read this repo and implement Twilio Voice webhook + Media Streams:
+
+Add POST /twilio/voice returning TwiML <Connect><Stream url='wss://bidetking.ddns.net/twilio/stream' /></Connect>
+
+Add WebSocket GET /twilio/stream that accepts Twilio Media Streams messages (start, media, stop) and logs them; leave TODO to forward base64 audio payload.
+
+Add optional Twilio signature validation for /twilio/voice using env var TWILIO_AUTH_TOKEN and a toggle TWILIO_VALIDATE_SIGNATURE=true/false.
+
+Update dependencies to include twilio.
+
+Update README with Twilio Console settings + env vars.
+
+Ensure existing healthz still works.”

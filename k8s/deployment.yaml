@@ -1,0 +1,27 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: gym-call-agent
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: gym-call-agent
+  template:
+    metadata:
+      labels:
+        app: gym-call-agent
+    spec:
+      containers:
+        - name: api
+          image: gym-call-agent:dev
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 8000
+          env:
+            - name: ENV
+              value: dev
+            - name: LOG_LEVEL
+              value: DEBUG
+            - name: PUBLIC_BASE_URL
+              value: https://bidetking.ddns.net

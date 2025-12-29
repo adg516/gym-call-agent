@@ -13,6 +13,7 @@ class Settings(BaseSettings):
     twilio_account_sid: str | None = None
     twilio_auth_token: str | None = None
     twilio_from_number: str | None = None
+    twilio_validate_signature: bool = False  # Set to True in production
 
     # Redis (optional for now)
     redis_url: str | None = None
