@@ -1,0 +1,74 @@
+==========================================
+TTS DEBUG - Tue Dec 30 20:35:10 UTC 2025
+==========================================
+
+📦 Pod: gym-call-agent-7cdbf4db75-p5fg5
+
+🔑 API KEYS CONFIGURED:
+-------------------------------------------
+OPENAI_API_KEY=***
+ELEVENLABS_API_KEY=***
+
+🔊 TTS INITIALIZATION:
+-------------------------------------------
+
+🎤 LAST CALL - SPEECH FLOW:
+-------------------------------------------
+
+❌ ERRORS:
+-------------------------------------------
+tasks cancelled error: 
+ERROR:     deepgram.clients.common.v1.abstract_async_websocket - tasks cancelled error: 
+
+📝 FULL RECENT LOGS (last 50 lines):
+-------------------------------------------
+after running thread: AnyIO worker thread
+DEBUG:     deepgram.clients.common.v1.abstract_async_websocket - after running thread: AnyIO worker thread
+after running thread: ThreadPoolExecutor-0_0
+DEBUG:     deepgram.clients.common.v1.abstract_async_websocket - after running thread: ThreadPoolExecutor-0_0
+number of active threads: 3
+DEBUG:     deepgram.clients.common.v1.abstract_async_websocket - number of active threads: 3
+AsyncListenWebSocketClient._emit LEAVE
+DEBUG:     deepgram.clients.common.v1.abstract_async_websocket - AsyncListenWebSocketClient._emit LEAVE
+clean up socket...
+VERBOSE:     deepgram.clients.common.v1.abstract_async_websocket - clean up socket...
+socket.wait_closed...
+VERBOSE:     deepgram.clients.common.v1.abstract_async_websocket - socket.wait_closed...
+cancelling tasks...
+VERBOSE:     deepgram.clients.common.v1.abstract_async_websocket - cancelling tasks...
+before running thread: MainThread
+DEBUG:     deepgram.clients.common.v1.abstract_async_websocket - before running thread: MainThread
+before running thread: AnyIO worker thread
+DEBUG:     deepgram.clients.common.v1.abstract_async_websocket - before running thread: AnyIO worker thread
+before running thread: ThreadPoolExecutor-0_0
+DEBUG:     deepgram.clients.common.v1.abstract_async_websocket - before running thread: ThreadPoolExecutor-0_0
+number of active threads: 3
+DEBUG:     deepgram.clients.common.v1.abstract_async_websocket - number of active threads: 3
+processing _listen_thread cancel...
+NOTICE:     deepgram.clients.common.v1.abstract_async_websocket - processing _listen_thread cancel...
+tasks cancelled error: 
+ERROR:     deepgram.clients.common.v1.abstract_async_websocket - tasks cancelled error: 
+AbstractAsyncWebSocketClient.finish LEAVE
+DEBUG:     deepgram.clients.common.v1.abstract_async_websocket - AbstractAsyncWebSocketClient.finish LEAVE
+before running thread: MainThread
+DEBUG:     deepgram.clients.common.v1.abstract_async_websocket - before running thread: MainThread
+before running thread: AnyIO worker thread
+DEBUG:     deepgram.clients.common.v1.abstract_async_websocket - before running thread: AnyIO worker thread
+before running thread: ThreadPoolExecutor-0_0
+DEBUG:     deepgram.clients.common.v1.abstract_async_websocket - before running thread: ThreadPoolExecutor-0_0
+number of active threads: 3
+DEBUG:     deepgram.clients.common.v1.abstract_async_websocket - number of active threads: 3
+threads joined
+NOTICE:     deepgram.clients.common.v1.abstract_async_websocket - threads joined
+after running thread: MainThread
+DEBUG:     deepgram.clients.common.v1.abstract_async_websocket - after running thread: MainThread
+after running thread: AnyIO worker thread
+DEBUG:     deepgram.clients.common.v1.abstract_async_websocket - after running thread: AnyIO worker thread
+after running thread: ThreadPoolExecutor-0_0
+DEBUG:     deepgram.clients.common.v1.abstract_async_websocket - after running thread: ThreadPoolExecutor-0_0
+number of active threads: 3
+DEBUG:     deepgram.clients.common.v1.abstract_async_websocket - number of active threads: 3
+finish succeeded
+NOTICE:     deepgram.clients.common.v1.abstract_async_websocket - finish succeeded
+INFO:     app.api.twilio - ✅ Deepgram connection closed
+INFO:     app.api.twilio - 🧹 Cleaning up conversation state for CA4e9b499143d44b1d27d79b088001def5

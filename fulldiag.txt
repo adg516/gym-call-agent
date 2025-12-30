@@ -1,0 +1,25 @@
+=== CHECKING POD: gym-call-agent-7cdbf4db75-p5fg5 ===
+
+1. TTS INITIALIZATION (should happen at startup):
+---
+
+2. LLM SERVICE STATUS:
+---
+
+3. CHECKING FOR NEW CODE MARKERS:
+---
+❌ OLD code (or no TTS calls yet)
+
+4. LAST CALL - AI RESPONSES:
+---
+
+5. LAST CALL - ERRORS:
+---
+
+6. ENVIRONMENT CHECK:
+---
+
+🎯 DIAGNOSIS:
+---
+❌ TTS NOT initialized - this is the problem!
+❌ LLM NOT generating - check conversation logic

@@ -6,8 +6,13 @@ Usage: python test_outbound_call.py +14155551234 "Example BJJ Gym"
 import requests
 import sys
 import time
+import urllib3
+
+# Disable SSL warnings for self-signed certs in dev
+urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
 BASE_URL = "https://bidetking.ddns.net"  # Production k8s deployment
+VERIFY_SSL = False  # Set to True in production with valid cert
 
 def make_call(phone_number: str, gym_name: str = None):
     """Initiate an outbound call."""
@@ -22,7 +27,7 @@ def make_call(phone_number: str, gym_name: str = None):
     }
     
     try:
-        response = requests.post(f"{BASE_URL}/v1/calls", json=payload)
+        response = requests.post(f"{BASE_URL}/v1/calls", json=payload, verify=VERIFY_SSL)
         response.raise_for_status()
         
         data = response.json()
@@ -46,7 +51,7 @@ def make_call(phone_number: str, gym_name: str = None):
 def check_call_status(call_id: str):
     """Check the status of a call."""
     try:
-        response = requests.get(f"{BASE_URL}/v1/calls/{call_id}")
+        response = requests.get(f"{BASE_URL}/v1/calls/{call_id}", verify=VERIFY_SSL)
         response.raise_for_status()
         
         data = response.json()

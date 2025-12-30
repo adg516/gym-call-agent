@@ -11,8 +11,17 @@ if [ ! -f .env ]; then
     exit 1
 fi
 
-# Load environment variables from .env
-export $(grep -v '^#' .env | xargs)
+# Load environment variables from .env (using source for better compatibility)
+set -a  # automatically export all variables
+source .env
+set +a
+
+# Debug: Show if keys are loaded (first 10 chars only)
+echo "Loaded keys:"
+echo "  TWILIO_ACCOUNT_SID: ${TWILIO_ACCOUNT_SID:0:10}..."
+echo "  DEEPGRAM_API_KEY: ${DEEPGRAM_API_KEY:0:10}..."
+echo "  OPENAI_API_KEY: ${OPENAI_API_KEY:0:10}..."
+echo ""
 
 # Create the secret (k3s requires sudo for kubectl)
 sudo kubectl create secret generic gym-call-agent-secrets \
@@ -20,6 +29,7 @@ sudo kubectl create secret generic gym-call-agent-secrets \
     --from-literal=TWILIO_AUTH_TOKEN="${TWILIO_AUTH_TOKEN:-}" \
     --from-literal=TWILIO_FROM_NUMBER="${TWILIO_FROM_NUMBER:-}" \
     --from-literal=DEEPGRAM_API_KEY="${DEEPGRAM_API_KEY:-}" \
+    --from-literal=OPENAI_API_KEY="${OPENAI_API_KEY:-}" \
     --dry-run=client -o yaml | sudo kubectl apply -f -
 
 echo "✅ Secret created/updated successfully!"

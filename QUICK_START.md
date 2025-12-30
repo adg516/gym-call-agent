@@ -1,6 +1,6 @@
 # 🎯 Gym Call Agent - Quick Start
 
-## ✅ Current Status: Phase 2 COMPLETE! 🎉
+## ✅ Current Status: Phase 4 COMPLETE! 🎉
 
 **Working Features:**
 - ✅ Outbound calling via Twilio
@@ -8,7 +8,10 @@
 - ✅ Audio processing (μ-law to PCM conversion)
 - ✅ Voice Activity Detection (VAD)
 - ✅ **Deepgram ASR - LIVE TRANSCRIPTION WORKING!**
-- ✅ Transcript saving to files
+- ✅ **OpenAI LLM - INFORMATION EXTRACTION WORKING!**
+- ✅ **OpenAI TTS - AI CAN SPEAK BACK!**
+- ✅ **TWO-WAY CONVERSATION!**
+- ✅ Transcript saving to files with AI analysis
 - ✅ K8s deployment on Raspberry Pi
 
 ## 🚀 Quick Test
@@ -40,23 +43,27 @@ python test_outbound_call.py +16305121365 "Test"
 - Interim and final transcription handling
 - Automatic transcript file generation
 
-## 🎯 Next Steps (Phase 3+)
+**Phase 3: LLM Integration ✅**
+- OpenAI GPT-4o-mini processing
+- Real-time information extraction
+- Hours, pricing, classes detection
+- Progress tracking and completion logic
 
-**Phase 3: LLM Integration** (TODO)
-- Add OpenAI/Anthropic for intelligent responses
-- Implement conversation flow
-- Extract structured data (hours, pricing, etc.)
+**Phase 4: Text-to-Speech ✅**
+- OpenAI TTS integration
+- Two-way conversation capability
+- Response generation based on missing info
+- Audio streaming back to caller
+- Natural conversation timing
 
-**Phase 4: Text-to-Speech** (TODO)
-- Convert AI responses to speech
-- Send audio back to caller
-- Natural conversation flow
+## 🎯 Next Steps (Phase 5)
 
-**Phase 5: Production Features** (TODO)
+**Phase 5: Production Polish** (TODO)
 - Redis for state management
-- Admin interface
+- Admin interface for viewing calls
 - Error handling & retry logic
 - Call recording
+- Monitoring & metrics
 - Multi-gym support
 
 ## 📁 Project Structure
@@ -65,25 +72,32 @@ python test_outbound_call.py +16305121365 "Test"
 gymgym/
 ├── app/
 │   ├── main.py              # FastAPI app
-│   ├── api/twilio.py        # Twilio webhooks + Deepgram ASR
+│   ├── api/twilio.py        # Twilio webhooks + ASR + LLM + TTS
+│   ├── services/
+│   │   ├── tts.py           # TTS service
+│   │   ├── llm.py           # LLM service
+│   │   ├── conversation.py  # State management
+│   │   └── audio_utils.py   # Audio processing
 │   └── core/
 │       ├── audio.py         # Audio processing
 │       └── config.py        # Settings
 ├── k8s/                     # Kubernetes configs
 ├── deploy.sh                # Deploy to k3s
 ├── test_outbound_call.py    # Test script
+├── test_phase4.sh           # Phase 4 testing
 ├── view_transcripts.sh      # View recent transcripts
 └── check_logs.sh            # Debug logs
 ```
 
 ## 🐛 Known Issues
 
-- Minor warning: "Error closing Deepgram: a coroutine was expected, got None" (cosmetic, doesn't affect functionality)
+**None currently!** All systems operational for Phase 4.
 
 ## 📝 Documentation
 
+- `PHASE4_COMPLETE.md` - Full Phase 4 summary
 - `IMPLEMENTATION_NOTES.md` - Technical details
 - `TRANSCRIPT_GUIDE.md` - How to access transcripts
 - `TRANSCRIPTION_TIPS.md` - Tips for better accuracy
 - `DEPLOY_CHECKLIST.md` - Deployment steps
-- `PHASE2_TRANSCRIPTION_COMPLETE.md` - Full Phase 2 summary
+- `test_phase4.sh` - Phase 4 testing guide

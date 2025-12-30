@@ -41,3 +41,9 @@ scipy==1.16.3
 
 # Speech Recognition
 deepgram-sdk==3.11.0
+
+# LLM
+openai>=1.58.0
+
+# TTS - ElevenLabs for natural voice
+elevenlabs>=1.0.0

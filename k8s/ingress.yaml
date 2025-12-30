@@ -4,7 +4,14 @@ metadata:
   name: gym-call-agent
   annotations:
     traefik.ingress.kubernetes.io/router.entrypoints: websecure
+    # Request LetsEncrypt certificate via cert-manager
+    cert-manager.io/cluster-issuer: "letsencrypt-prod"
 spec:
+  # TLS configuration - this tells cert-manager to issue a cert
+  tls:
+    - hosts:
+        - bidetking.ddns.net
+      secretName: gym-call-agent-tls
   rules:
     - host: bidetking.ddns.net
       http:

@@ -1,0 +1,67 @@
+GYM CALL TRANSCRIPT & AI ANALYSIS
+======================================================================
+Call SID: CA1234567890abcdef
+Date/Time: 2025-12-30 14:30:45 UTC
+Duration: 45.23 seconds
+======================================================================
+
+FULL CONVERSATION
+----------------------------------------------------------------------
+
+[1] Gym Staff: Hello, thanks for calling Fitness Plus. How can I help you?
+    (Confidence: 99%)
+
+[2] Gym Staff: We're open from 6 in the morning until 10 at night, Monday through Friday.
+    (Confidence: 98%)
+
+[3] Gym Staff: Weekends we're 8 to 8.
+    (Confidence: 97%)
+
+[4] Gym Staff: Day passes are twenty-five dollars.
+    (Confidence: 100%)
+
+[5] Gym Staff: We have yoga, spin, and pilates classes throughout the day.
+    (Confidence: 99%)
+
+[6] Gym Staff: Walk-ins are totally welcome, no appointment needed.
+    (Confidence: 98%)
+
+[7] Gym Staff: Is there anything else I can help you with?
+    (Confidence: 99%)
+
+
+======================================================================
+AI ANALYSIS & EXTRACTED INFORMATION
+======================================================================
+
+Information Completeness: 100%
+Status: ✓ All core information collected
+
+OPERATING HOURS
+----------------------------------------------------------------------
+6am-10pm Mon-Fri, 8am-8pm weekends
+
+DAY PASS PRICING
+----------------------------------------------------------------------
+$25
+
+FITNESS CLASSES
+----------------------------------------------------------------------
+  • yoga
+  • spin
+  • pilates
+
+DROP-IN POLICY
+----------------------------------------------------------------------
+Walk-ins welcome, no appointment needed
+
+----------------------------------------------------------------------
+Conversation Statistics:
+  • Total exchanges: 7
+  • Speech frames: 234 (52%)
+  • Average confidence: 99%
+
+
+======================================================================
+End of transcript
+

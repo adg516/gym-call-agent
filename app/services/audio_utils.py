@@ -11,6 +11,8 @@ import base64
 import numpy as np
 from typing import Optional
 import logging
+from scipy import signal
+import audioop  # Python's built-in audio operations (more reliable for μ-law)
 
 logger = logging.getLogger(__name__)
 
@@ -131,13 +133,15 @@ def decode_mulaw_to_pcm(mulaw_bytes: bytes) -> bytes:
     Returns:
         PCM audio (16-bit linear)
     """
-    # Convert bytes to numpy array
-    mulaw_array = np.frombuffer(mulaw_bytes, dtype=np.uint8)
-    
-    # Decode each sample
-    pcm_array = np.array([_mulaw_to_linear(b) for b in mulaw_array], dtype=np.int16)
-    
-    return pcm_array.tobytes()
+    # Use Python's built-in audioop for reliable μ-law decoding
+    try:
+        return audioop.ulaw2lin(mulaw_bytes, 2)
+    except audioop.error as e:
+        logger.error(f"audioop.ulaw2lin failed: {e}, falling back to manual decoding")
+        # Fallback to manual decoding if audioop fails
+        mulaw_array = np.frombuffer(mulaw_bytes, dtype=np.uint8)
+        pcm_array = np.array([_mulaw_to_linear(b) for b in mulaw_array], dtype=np.int16)
+        return pcm_array.tobytes()
 
 
 def encode_pcm_to_mulaw(pcm_bytes: bytes) -> bytes:
@@ -145,18 +149,164 @@ def encode_pcm_to_mulaw(pcm_bytes: bytes) -> bytes:
     Encode linear PCM to μ-law.
     
     Args:
-        pcm_bytes: PCM audio (16-bit linear)
+        pcm_bytes: PCM audio (16-bit linear, mono)
         
     Returns:
         μ-law encoded audio (8-bit)
     """
-    # Convert bytes to numpy array of 16-bit integers
+    # Use Python's built-in audioop for reliable μ-law encoding
+    # lin2ulaw expects (fragment, width) where width=2 for 16-bit audio
+    try:
+        return audioop.lin2ulaw(pcm_bytes, 2)
+    except audioop.error as e:
+        logger.error(f"audioop.lin2ulaw failed: {e}, falling back to manual encoding")
+        # Fallback to manual encoding if audioop fails
+        pcm_array = np.frombuffer(pcm_bytes, dtype=np.int16)
+        mulaw_array = np.array([_linear_to_mulaw(s) for s in pcm_array], dtype=np.uint8)
+        return mulaw_array.tobytes()
+
+
+def resample_audio(pcm_bytes: bytes, orig_rate: int, target_rate: int) -> bytes:
+    """
+    Resample PCM audio from one sample rate to another with high quality anti-aliasing.
+    Uses scipy.signal.resample_poly with optimized filter for telephony.
+    
+    Args:
+        pcm_bytes: PCM audio (16-bit linear mono)
+        orig_rate: Original sample rate in Hz (e.g., 22050, 24000)
+        target_rate: Target sample rate in Hz (e.g., 8000)
+    
+    Returns:
+        Resampled PCM audio (16-bit linear mono)
+    """
+    from math import gcd
+    
+    if orig_rate == target_rate:
+        return pcm_bytes
+    
+    # Verify we have data
+    if len(pcm_bytes) == 0:
+        logger.warning("resample_audio: received empty audio")
+        return pcm_bytes
+    
+    # Convert bytes to numpy array (float32 for high-precision processing)
+    pcm_array = np.frombuffer(pcm_bytes, dtype=np.int16).astype(np.float32)
+    
+    # Normalize to -1.0 to 1.0 range for better processing
+    pcm_array = pcm_array / 32768.0
+    
+    # Calculate rational resampling factors
+    # resample_poly(x, up, down) upsamples by 'up', then downsamples by 'down'
+    # with proper anti-aliasing filter
+    common = gcd(orig_rate, target_rate)
+    up = target_rate // common      # e.g., 8000/8000 = 1
+    down = orig_rate // common      # e.g., 24000/8000 = 3
+    
+    logger.debug(f"🔄 Resampling {orig_rate}Hz → {target_rate}Hz (up={up}, down={down}, ratio={down/up:.2f}:1)")
+    
+    try:
+        # For 24kHz -> 8kHz (3:1 ratio), this is a simple decimation
+        # resample_poly applies proper low-pass FIR anti-aliasing filter
+        # window parameter controls filter quality (default is good for telephony)
+        resampled = signal.resample_poly(pcm_array, up, down, window='hamming')
+        
+        logger.debug(f"   Input: {len(pcm_array)} samples, Output: {len(resampled)} samples")
+        
+    except Exception as e:
+        logger.warning(f"⚠️  resample_poly failed: {e}, falling back to basic resample")
+        num_samples = int(len(pcm_array) * target_rate / orig_rate)
+        resampled = signal.resample(pcm_array, num_samples)
+    
+    # Denormalize back to int16 range
+    resampled = resampled * 32768.0
+    
+    # Clip to prevent overflow and convert to int16
+    resampled = np.clip(resampled, -32768, 32767).astype(np.int16)
+    
+    return resampled.tobytes()
+
+
+def normalize_audio(pcm_bytes: bytes, target_peak: float = 0.9) -> bytes:
+    """
+    Normalize audio to prevent clipping while maintaining quality.
+    
+    Args:
+        pcm_bytes: PCM audio (16-bit linear)
+        target_peak: Target peak level (0.0-1.0), default 0.9 to avoid clipping
+    
+    Returns:
+        Normalized PCM audio (16-bit linear)
+    """
+    if len(pcm_bytes) < 2:
+        return pcm_bytes
+    
+    # Convert to numpy array
     pcm_array = np.frombuffer(pcm_bytes, dtype=np.int16)
     
-    # Encode each sample
-    mulaw_array = np.array([_linear_to_mulaw(s) for s in pcm_array], dtype=np.uint8)
+    # Find current peak
+    current_peak = np.abs(pcm_array).max()
     
-    return mulaw_array.tobytes()
+    if current_peak == 0:
+        logger.debug("normalize_audio: silent audio, skipping normalization")
+        return pcm_bytes
+    
+    # Calculate normalization factor
+    target_level = target_peak * 32767
+    gain = target_level / current_peak
+    
+    # Only normalize if we need to reduce volume (prevent clipping)
+    # or if volume is very low (< 50%)
+    if gain < 1.0 or current_peak < 16384:
+        logger.debug(f"🔊 Normalizing audio: peak {current_peak} → {int(target_level)} (gain={gain:.2f}x)")
+        normalized = (pcm_array.astype(np.float32) * gain).astype(np.int16)
+        return normalized.tobytes()
+    
+    return pcm_bytes
+
+
+def convert_pcm16_to_mulaw_8khz(pcm_bytes: bytes, orig_sample_rate: int = 24000) -> bytes:
+    """
+    Convert PCM audio to μ-law format at 8kHz (for Twilio).
+    This is the main function for TTS output conversion with quality optimizations.
+    
+    Pipeline:
+    1. Normalize audio to prevent clipping
+    2. Resample from orig_sample_rate (e.g., 24kHz) to 8kHz with anti-aliasing
+    3. Encode to μ-law format
+    
+    Args:
+        pcm_bytes: PCM audio (16-bit linear mono)
+        orig_sample_rate: Original sample rate in Hz (default 24000 for ElevenLabs/OpenAI)
+    
+    Returns:
+        μ-law encoded audio at 8kHz (8-bit)
+    """
+    # Ensure buffer is even length (16-bit PCM = 2 bytes per sample)
+    if len(pcm_bytes) % 2 != 0:
+        logger.debug("Padding odd-length audio buffer")
+        pcm_bytes = pcm_bytes + b'\x00'  # Pad with silence
+    
+    orig_len = len(pcm_bytes)
+    
+    # Step 1: Normalize to prevent clipping (critical for avoiding static!)
+    pcm_normalized = normalize_audio(pcm_bytes, target_peak=0.85)
+    
+    # Step 2: Resample to 8kHz with proper anti-aliasing
+    if orig_sample_rate != 8000:
+        logger.debug(f"🔄 Resampling {orig_sample_rate}Hz → 8000Hz ({orig_len} bytes)")
+        pcm_8khz = resample_audio(pcm_normalized, orig_sample_rate, 8000)
+        logger.debug(f"✓ Resampled: {len(pcm_8khz)} bytes (ratio: {orig_len/len(pcm_8khz):.2f}x)")
+    else:
+        pcm_8khz = pcm_normalized
+    
+    # Step 3: Encode to μ-law using audioop (reliable built-in encoder)
+    mulaw_bytes = encode_pcm_to_mulaw(pcm_8khz)
+    
+    # Log conversion stats
+    duration_ms = len(mulaw_bytes) / 8  # 8 bytes = 1ms at 8kHz mono μ-law
+    logger.info(f"🔊 Audio converted: {orig_len}B PCM@{orig_sample_rate}Hz → {len(mulaw_bytes)}B μ-law@8kHz ({duration_ms:.0f}ms)")
+    
+    return mulaw_bytes
 
 
 def calculate_audio_level(pcm_bytes: bytes) -> float:

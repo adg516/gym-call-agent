@@ -10,6 +10,11 @@ sudo docker save gym-call-agent:dev -o /tmp/gym-call-agent-new.tar
 echo "📦 Loading into k3s..."
 sudo k3s ctr images import /tmp/gym-call-agent-new.tar
 
+echo "📄 Applying deployment configuration..."
+sudo kubectl apply -f k8s/deployment.yaml
+sudo kubectl apply -f k8s/service.yaml
+sudo kubectl apply -f k8s/ingress.yaml
+
 echo "🔄 Restarting deployment..."
 sudo kubectl rollout restart deployment/gym-call-agent
 
