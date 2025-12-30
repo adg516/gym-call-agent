@@ -7,7 +7,7 @@ import requests
 import sys
 import time
 
-BASE_URL = "http://localhost:8000"  # Change to https://bidetking.ddns.net for production
+BASE_URL = "https://bidetking.ddns.net"  # Production k8s deployment
 
 def make_call(phone_number: str, gym_name: str = None):
     """Initiate an outbound call."""

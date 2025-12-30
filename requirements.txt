@@ -38,3 +38,6 @@ yarl==1.22.0
 # Audio processing
 numpy==2.4.0
 scipy==1.16.3
+
+# Speech Recognition
+deepgram-sdk==3.11.0

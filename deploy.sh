@@ -11,15 +11,15 @@ echo "📦 Loading into k3s..."
 sudo k3s ctr images import /tmp/gym-call-agent-new.tar
 
 echo "🔄 Restarting deployment..."
-kubectl rollout restart deployment/gym-call-agent
+sudo kubectl rollout restart deployment/gym-call-agent
 
 echo "⏳ Waiting for rollout..."
-kubectl rollout status deployment/gym-call-agent
+sudo kubectl rollout status deployment/gym-call-agent
 
 echo "✅ Deployment complete!"
 echo ""
 echo "📋 Checking logs..."
-kubectl logs deployment/gym-call-agent --tail=20
+sudo kubectl logs deployment/gym-call-agent --tail=20
 
 echo ""
 echo "🎉 Done! Now test your call again."

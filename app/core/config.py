@@ -15,6 +15,9 @@ class Settings(BaseSettings):
     twilio_from_number: str | None = None
     twilio_validate_signature: bool = False  # Set to True in production
 
+    # Deepgram (ASR)
+    deepgram_api_key: str | None = None
+
     # Redis (optional for now)
     redis_url: str | None = None
 
