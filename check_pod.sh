@@ -29,3 +29,6 @@ else
     echo "  sudo kubectl logs -f $POD | grep content-type"
 fi
 
+
+
+

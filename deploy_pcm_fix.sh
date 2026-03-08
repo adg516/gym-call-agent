@@ -29,3 +29,6 @@ echo "  sudo kubectl logs -f $POD | grep -E '(content-type|ElevenLabs generated)
 echo ""
 echo "You should see: 'content-type': 'application/octet-stream' (NOT audio/mpeg)"
 
+
+
+

@@ -77,20 +77,23 @@ class TTSService:
                 "Content-Type": "application/json",
             }
             
-            # OPTIMIZED voice settings for telephony (based on ElevenLabs best practices)
-            # - Higher stability (0.7) for consistent, clear speech on phone
-            # - Lower similarity (0.65) to reduce artifacts  
-            # - Disable style exaggeration (0.0) to prevent distortion
-            # - Enable speaker boost for phone clarity
+            # OPTIMIZED voice settings for natural conversational telephony
+            # Research-based settings for maximum naturalness:
+            # - Lower stability (0.5) = more natural variation like real humans
+            # - Higher similarity (0.75) = consistent voice identity
+            # - Style (0.3) = adds conversational expressiveness
+            # - Speed (0.75) = slower, relaxed conversational pace
+            # - Speaker boost = essential for phone clarity
             payload = {
                 "text": text,
                 "model_id": settings.elevenlabs_model,
                 "voice_settings": {
-                    "stability": 0.7,           # Increased for consistency (was 0.5)
-                    "similarity_boost": 0.65,   # Reduced to avoid artifacts (was 0.75)
-                    "style": 0.0,               # Keep at 0 for phone calls
-                    "use_speaker_boost": True   # Essential for phone clarity
-                }
+                    "stability": 0.5,              # Natural variation
+                    "similarity_boost": 0.75,      # Consistent voice
+                    "style": 0.3,                  # Conversational style
+                    "use_speaker_boost": True
+                },
+                "speed": 0.75  # Slower pace (was 0.85, now 25% slower)
             }
             
             # Use longer timeout for TTS generation

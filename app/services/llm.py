@@ -166,23 +166,18 @@ Output: {{"extracted_info": {{}}, "confidence": "low", "notes": "No information 
             missing = gym_info.get_missing_fields()
             completion = gym_info.completion_percentage()
             
-            # Simple rule-based logic for Phase 3
-            # Phase 4 will use LLM to decide what to ask next
+            # Simple rule-based logic - only care about hours and price
             
-            # If we have hours and price (core info), we're good
+            # If we have hours and price, we're done!
             if gym_info.hours and gym_info.day_pass_price:
-                return True, "Core information collected (hours and pricing)"
+                return True, "Got hours and price - we're good!"
             
-            # If we've had 10+ exchanges and still missing core info, give up
-            if conversation_state.transcriptions_processed >= 10:
-                return True, "Max transcriptions reached without complete info"
-            
-            # If completion is high, end call
-            if completion >= 75:
-                return True, f"High completion rate ({completion:.0f}%)"
+            # If we've had 6+ exchanges and still missing info, give up
+            if conversation_state.transcriptions_processed >= 6:
+                return True, "Max transcriptions reached"
             
             # Keep going
-            return False, f"Still collecting info (completion: {completion:.0f}%)"
+            return False, f"Still need info"
             
         except Exception as e:
             logger.error(f"Error in should_end_call: {e}")
@@ -192,12 +187,12 @@ Output: {{"extracted_info": {{}}, "confidence": "low", "notes": "No information 
         """Fallback logic when LLM is not configured."""
         gym_info = conversation_state.gym_info
         
-        # End if we have core info
+        # End if we have hours and price
         if gym_info.hours and gym_info.day_pass_price:
-            return True, "Core information collected"
+            return True, "Got hours and price"
         
-        # End after 10 transcriptions
-        if conversation_state.transcriptions_processed >= 10:
+        # End after 6 transcriptions (shorter call)
+        if conversation_state.transcriptions_processed >= 6:
             return True, "Max transcriptions reached"
         
         return False, "Collecting information"
@@ -221,32 +216,46 @@ Output: {{"extracted_info": {{}}, "confidence": "low", "notes": "No information 
             missing_fields = gym_info.get_missing_fields()
             recent_context = conversation_state.get_recent_context(n=5)
             
-            # Check if we should end the call
-            should_end, reason = await self.should_end_call(conversation_state)
-            
             if should_end:
-                return "Thank you so much for your help! Have a great day."
+                return "Thanks!"
             
-            # FIRST MESSAGE: Opening greeting (before any gym speech)
+            # FIRST MESSAGE: Opening greeting with AI disclosure
             if conversation_state.transcriptions_processed == 0:
-                return "Hi! I'm calling to ask about your gym. What are your operating hours?"
+                return "Hey! Um... this is an AI calling on behalf of a visitor... I was just wondering if you could help me out real quick with your hours?"
             
             # After gym has spoken, use LLM to decide next question
             # Build list of what AI has already asked
             ai_messages = [msg.text for msg in conversation_state.conversation_history if msg.speaker == "ai"]
             
-            system_prompt = """You are a friendly AI assistant on a phone call with a gym.
-            
-You need to collect: operating hours, day pass price, fitness classes, and drop-in policy.
+            system_prompt = """You are a real person making a casual phone call to a gym.
+
+Your goal: Get hours and day pass price. That's it.
+
+SPEAKING STYLE - Sound HUMAN and INDIRECT:
+- Use lots of fillers: "uh", "um", "like", "so"
+- Be indirect and soft: "I was just wondering...", "if you don't mind..."
+- Natural pauses with "..."
+- Hesitations and politeness
+- Contractions: "you're", "what's", "I'm"
 
 RULES:
-1. Keep responses under 12 words
-2. Ask ONE question at a time
-3. NEVER repeat questions - check what AI already asked
-4. If they gave info, thank them briefly and ask about something NEW
-5. Sound natural and conversational
+1. Keep it SHORT - 12-18 words max
+2. Use 2-3 filler words per response
+3. Add "..." for natural pauses
+4. Be INDIRECT - don't ask directly
+5. Only ask about: HOURS and DAY PASS PRICE
 
-Return ONLY the text to speak, nothing else."""
+GOOD EXAMPLES (INDIRECT):
+✅ "Hey, so um... I was just curious what your hours might be?"
+✅ "Oh great! And uh... if you don't mind, what's like the day pass situation?"
+✅ "Perfect! So um... I was wondering like... what time do you guys open?"
+✅ "Nice! Just curious... like... what would a day pass run me?"
+
+BAD EXAMPLES (TOO DIRECT):
+❌ "What are your hours?" (too direct!)
+❌ "How much is a day pass?" (too abrupt!)
+
+Return ONLY the text to speak."""
 
             user_message = f"""CONVERSATION SO FAR:
 {recent_context}
@@ -257,10 +266,10 @@ AI HAS ALREADY SAID:
 INFORMATION COLLECTED:
 - Hours: {gym_info.hours if gym_info.hours else '(not yet)'}
 - Day pass price: {gym_info.day_pass_price if gym_info.day_pass_price else '(not yet)'}
-- Classes: {', '.join(gym_info.classes) if gym_info.classes else '(not yet)'}
-- Drop-in policy: {gym_info.drop_in_policy if gym_info.drop_in_policy else '(not yet)'}
 
-Generate ONE short response. Do NOT repeat any question from "AI HAS ALREADY SAID"."""
+Generate ONE short, INDIRECT response with lots of filler words. Do NOT repeat any question from "AI HAS ALREADY SAID".
+ONLY ask about hours or day pass price - nothing else!
+Be soft and indirect - use phrases like "I was wondering..." or "if you don't mind..."."""
 
             response = await self.client.chat.completions.create(
                 model=settings.openai_model,
@@ -297,7 +306,7 @@ Generate ONE short response. Do NOT repeat any question from "AI HAS ALREADY SAI
         # Check if we should end
         should_end, reason = self._fallback_should_end(conversation_state)
         if should_end:
-            return "Thank you for your help! Have a great day."
+            return "Thanks!"
         
         # Get what AI has already said to avoid repeats
         ai_messages = [msg.text.lower() for msg in conversation_state.conversation_history if msg.speaker == "ai"]
@@ -305,22 +314,18 @@ Generate ONE short response. Do NOT repeat any question from "AI HAS ALREADY SAI
         def already_asked(keyword: str) -> bool:
             return any(keyword in msg for msg in ai_messages)
         
-        # First message
+        # First message with AI disclosure
         if conversation_state.transcriptions_processed == 0:
-            return "Hi! What are your operating hours?"
+            return "Hey! Um... this is an AI calling on behalf of a visitor... I was just wondering if you could help me out real quick with your hours?"
         
-        # Ask about missing info, but check we haven't asked already
+        # Only ask about hours and price - be indirect and soft
         if not gym_info.hours and not already_asked("hours"):
-            return "What are your operating hours?"
+            return "So um... I was just curious like... what are your hours?"
         elif not gym_info.day_pass_price and not already_asked("day pass") and not already_asked("price"):
-            return "How much is a day pass?"
-        elif not gym_info.classes and not already_asked("classes"):
-            return "Do you offer any fitness classes?"
-        elif not gym_info.drop_in_policy and not already_asked("drop in") and not already_asked("drop-in"):
-            return "Can people drop in without an appointment?"
+            return "Oh great! And uh... if you don't mind, what's like the day pass situation?"
         
-        # We have everything or already asked everything
-        return "Thank you so much! Have a great day."
+        # We have everything
+        return "Thanks!"
 
 
 # Singleton instance

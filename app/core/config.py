@@ -25,7 +25,7 @@ class Settings(BaseSettings):
     # ElevenLabs TTS - Natural conversational voice
     elevenlabs_api_key: str | None = None
     elevenlabs_voice_id: str = "21m00Tcm4TlvDq8ikWAM"  # "Rachel" - natural conversational female
-    elevenlabs_model: str = "eleven_turbo_v2_5"  # Fast, high quality model
+    elevenlabs_model: str = "eleven_multilingual_v2"  # High quality, more expressive (upgraded from turbo_v2_5)
     
     # OpenAI TTS - used for phone calls (24kHz = clean 3:1 ratio to 8kHz)
     tts_model: str = "tts-1-hd"  # Higher quality model
